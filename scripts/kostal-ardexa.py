@@ -287,6 +287,40 @@ def get_data(socket, address, debug):
 		total_hours = get_4bytes(response, 5)
 		total_hours = total_hours / 3600
 
+	# Format all values, convert them to strings, and formaulet a header line
+	# Return the line and the header line
+	DC_string1_volts = format(DC_string1_volts, '0.2f')
+	DC_string2_volts = format(DC_string2_volts, '0.2f')
+	DC_string3_volts = format(DC_string3_volts, '0.2f')
+	DC_string1_current = format(DC_string1_current, '0.2f')
+	DC_string2_current = format(DC_string2_current, '0.2f')
+	DC_string3_current = format(DC_string3_current, '0.2f')
+	DC_string1_power = format(DC_string1_power, '0.2f')
+	DC_string2_power = format(DC_string2_power, '0.2f')
+	DC_string3_power = format(DC_string3_power, '0.2f')
+	DC_string1_temperature = format(DC_string1_temperature, '0.2f')
+	DC_string2_temperature = format(DC_string2_temperature, '0.2f')
+	DC_string3_temperature = format(DC_string3_temperature, '0.2f')
+	AC_phase1_volts = format(AC_phase1_volts, '0.2f')
+	AC_phase2_volts = format(AC_phase2_volts, '0.2f')
+	AC_phase3_volts = format(AC_phase3_volts, '0.2f')
+	AC_phase1_current = format(AC_phase1_current, '0.2f')
+	AC_phase2_current = format(AC_phase2_current, '0.2f')
+	AC_phase3_current = format(AC_phase3_current, '0.2f')
+	AC_phase1_power = format(AC_phase1_power, '0.2f')
+	AC_phase2_power = format(AC_phase2_power, '0.2f')
+	AC_phase3_power = format(AC_phase3_power, '0.2f')
+	AC_phase1_temperature = format(AC_phase1_temperature, '0.2f')
+	AC_phase2_temperature = format(AC_phase2_temperature, '0.2f')
+	AC_phase3_temperature = format(AC_phase3_temperature, '0.2f')
+	DC_power = format(DC_power, '0.2f')
+	AC_power = format(AC_power, '0.2f')
+	total_energy = format(total_energy, '0.2f')
+	daily_energy = format(daily_energy, '0.2f')
+	total_hours = format(total_hours, '0.2f')
+
+	datetime = get_datetime()
+
 	if (debug >= 1):
 		print "Error=",error," Error_Code=",error_code," Status=",status
 		print "DC Volts1=",DC_string1_volts," DC Volts2=",DC_string2_volts," DC Volts3=",DC_string3_volts
@@ -299,40 +333,8 @@ def get_data(socket, address, debug):
 		print "AC Temperature1=",AC_phase1_temperature," AC Temperature2=",AC_phase2_temperature," AC Temperature3=",AC_phase3_temperature
 		print "DC Power=",DC_power," AC Power=",AC_power
 		print "Total Energy=",total_energy," Daily Energy=",daily_energy," Total Hours=",total_hours
+		print "Datetime=",datetime
 
-	# Format all values, convert them to strings, and formaulet a header line
-	# Return the line and the header line
-	format(DC_string1_volts, '0.2f')
-	format(DC_string2_volts, '0.2f')
-	format(DC_string3_volts, '0.2f')
-	format(DC_string1_current, '0.2f')
-	format(DC_string2_current, '0.2f')
-	format(DC_string3_current, '0.2f')
-	format(DC_string1_power, '0.2f')
-	format(DC_string2_power, '0.2f')
-	format(DC_string3_power, '0.2f')
-	format(DC_string1_temperature, '0.2f')
-	format(DC_string2_temperature, '0.2f')
-	format(DC_string3_temperature, '0.2f')
-	format(AC_phase1_volts, '0.2f')
-	format(AC_phase2_volts, '0.2f')
-	format(AC_phase3_volts, '0.2f')
-	format(AC_phase1_current, '0.2f')
-	format(AC_phase2_current, '0.2f')
-	format(AC_phase3_current, '0.2f')
-	format(AC_phase1_power, '0.2f')
-	format(AC_phase2_power, '0.2f')
-	format(AC_phase3_power, '0.2f')
-	format(AC_phase1_temperature, '0.2f')
-	format(AC_phase2_temperature, '0.2f')
-	format(AC_phase3_temperature, '0.2f')
-	format(DC_power, '0.2f')
-	format(AC_power, '0.2f')
-	format(total_energy, '0.2f')
-	format(daily_energy, '0.2f')
-	format(total_hours, '0.2f')
-
-	datetime = get_datetime()
 
 	# Formulate the line
 	line = datetime + "," + str(DC_string1_volts) + "," + str(DC_string2_volts) + "," + str(DC_string3_volts) + "," + str(DC_string1_current) + "," \
