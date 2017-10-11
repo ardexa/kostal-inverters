@@ -5,19 +5,18 @@ Kostal (http://www.kostal-solar-electric.com/) supply retail and commercial grad
 ## How does it work
 This application is written in Python, to query Kostal inverters connected via Ethernet. This application will query 1 or more connected inverters at regular intervals. Data will be written to log files on disk in a directory specified by the user. Usage and command line parameters are as follows:
 
+```
 Usage: python kostal-ardexa.py IP_address start_address end_address log_directory query_type debug_str
 Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
-IP Address = ..something like: 192.168.1.4
-Start Address = start range (this is an RS485 address, NOT Ethernet)
-End Address = end range ((this is an RS485 address, NOT Ethernet) - and Max 255 for Kostal Inverters)
-log directory = logging directory; eg; /opt/logging/
-type of query = DISCOVERY or RUNTIME
-	DISCOVERY ... will scan the whole 1-255 RS485 address range and print out the inverter metadata
-	RUNTIME ... will send production data to a file on disk 
-debug type = 0 (no messages, except errors), 1 (discovery messages) or 2 (all messages)
- DEBUG = 0 ; No Debug information
- DEBUG = 1 ; Important Debug information
- DEBUG = 2 ; ALL Debug information
+```
+- IP Address = ..something like: 192.168.1.4
+- Start Address = start range (this is an RS485 address, NOT Ethernet)
+- End Address = end range ((this is an RS485 address, NOT Ethernet) - and Max 255 for Kostal Inverters)
+- log directory = logging directory; eg; /opt/logging/
+- type of query = DISCOVERY or RUNTIME
+	- DISCOVERY ... will scan the whole 1-255 RS485 address range and print out the inverter metadata
+	- RUNTIME ... will send production data to a file on disk 
+- debug type = 0 (no messages, except errors), 1 (discovery messages) or 2 (all messages)
 
 ## Connecting to, and communicating with, Kostal Inverters
 In this project, please take a look at the 'docs' directory. You will find a version of the "Installation and
@@ -51,8 +50,8 @@ Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
 
 ## Collecting to the Ardexa cloud
 Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:
-a. Create a `RUN` scenario to schedule the Ardexa Kostal script to run at regular intervals (say every 300 seconds/5 minutes).
-b. Then use a `CAPTURE` scenario to collect the csv (comma separated) data from the filename (say) `/opt/ardexa/Kostal/logs/`. This file contains a header entry (as the first line) that describes the CSV elements of the file.
+- Create a `RUN` scenario to schedule the Ardexa Kostal script to run at regular intervals (say every 300 seconds/5 minutes).
+- Then use a `CAPTURE` scenario to collect the csv (comma separated) data from the filename (say) `/opt/ardexa/Kostal/logs/`. This file contains a header entry (as the first line) that describes the CSV elements of the file.
 
 ## Help
 Contact Ardexa at support@ardexa.com, and we'll do our best efforts to help.
