@@ -13,8 +13,8 @@
 # IN THE SOFTWARE.
 #
 
-# This script will query one or more Kostal inverters. 
-# Usage: python kostal-ardexa.py IP_address start_address end_address log_directory query_type debug_str
+# This script will query one or more Kostal inverters.
+# Usage: python kostal-ardexa.py IP_address start_address end_address log_directory
 # Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
 # {IP Address} = ..something lijke: 192.168.1.4
 # {Start Address} = start range 1
@@ -34,12 +34,13 @@
 import sys
 import time
 import os
+import click
 import socket
 import hexdump
 from Supporting import *
 
 # These are the status codes from the Kostal Manual
-status_codes = {0: 'Off', 1: 'Standby', 2: 'Starting', 3: 'Feed-in (MPP)', 4: 'Feed-in regulated', 5: 'Feed-in'}
+STATUS_CODES = {0: 'Off', 1: 'Standby', 2: 'Starting', 3: 'Feed-in (MPP)', 4: 'Feed-in regulated', 5: 'Feed-in'}
 BUFFERSIZE = 8196
 PIDFILE = 'kostal-ardexa.pid'
 PORT = 81
@@ -47,24 +48,24 @@ PORT = 81
 # This will write a line to the base_directory
 # Assume header and lines are already \n terminated
 def write_line(line, inverter_addr, base_directory, header_line, debug):
-	# Write the log entry, as a date entry in the log directory
-	date_str = (time.strftime("%d-%b-%Y"))
-	log_filename = date_str + ".csv"
-	log_directory = os.path.join(base_directory, inverter_addr)
-	write_log(log_directory, log_filename, header_line, line, debug, True, log_directory, "latest.csv")
+    # Write the log entry, as a date entry in the log directory
+    date_str = (time.strftime("%d-%b-%Y"))
+    log_filename = date_str + ".csv"
+    log_directory = os.path.join(base_directory, inverter_addr)
+    write_log(log_directory, log_filename, header_line, line, debug, True, log_directory, "latest.csv")
 
-	return True
+    return True
 
 # Kostal IP Socket settings
 def open_socket(IP_address, debug):
-	# open the socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.settimeout(1)
-	try:		
-		retval = sock.connect((IP_address, PORT))
-		return True, sock
-	except:
-		return False, sock
+    # open the socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
+    try:
+        retval = sock.connect((IP_address, PORT))
+        return True, sock
+    except:
+        return False, sock
 
 # Close the socket
 def close_socket(sock):
@@ -92,7 +93,7 @@ def get_4bytes(response, index):
 		return -999.9
 
 # Formulate the request, which includes the checksum
-def formulate_request(code, address):  
+def formulate_request(code, address):
 	request = '\x62%s\x03%s\x00%s' % (chr(address), chr(address), chr(code))
 	checksum = 0
 	for i in range(len(request)):
@@ -117,15 +118,20 @@ def verify_checksum(response):
 
 # Send a request and return the response
 def send_recv(socket, request, debug):
-	if (debug >= 2):
-		print 'Sent: ', hexdump.hexdump(request)
+    if (debug >= 2):
+        print 'Sent: ', hexdump.hexdump(request)
 
-	socket.send(request)
-	response = socket.recv(BUFFERSIZE)
-	if (debug >= 2):
-		print 'Received: ', hexdump.hexdump(response)
+    response = ''
+    try:
+        socket.send(request)
+        response = socket.recv(BUFFERSIZE)
+    except:
+        pass
 
-	return response
+    if (debug >= 2):
+        print 'Received: ', hexdump.hexdump(response)
+
+    return response
 
 # Get the inverter metadata
 # This includes mode, string, phase, serial number, version and name of the inverter
@@ -200,7 +206,7 @@ def get_data(socket, address, debug):
 	DC_string1_volts=0; DC_string2_volts=0; DC_string3_volts=0; DC_string1_current=0; DC_string2_current=0; DC_string3_current=0
 	DC_string1_power=0; DC_string2_power=0; DC_string3_power=0; DC_string1_temperature=0; DC_string2_temperature=0; DC_string3_temperature=0
 	AC_phase1_volts=0; AC_phase2_volts=0; AC_phase3_volts=0
-	AC_phase1_current=0; AC_phase2_current=0; AC_phase3_current=0; AC_phase1_power=0; AC_phase2_power=0; AC_phase3_power=0 
+	AC_phase1_current=0; AC_phase2_current=0; AC_phase3_current=0; AC_phase1_power=0; AC_phase2_power=0; AC_phase3_power=0
 	AC_phase1_temperature=0; AC_phase2_temperature=0; AC_phase3_temperature=0; DC_power=0; AC_power=0
 	total_energy=0; daily_energy=0; total_hours=0
 
@@ -209,15 +215,15 @@ def get_data(socket, address, debug):
 	response = send_recv(socket, request, debug)
 	if ((not verify_checksum(response)) or (len(response) < 9)):
 		print "Status request checksum is not good"
-		retval = False
+		return '', '', False
 	else:
 		error_code = get_2bytes(response, 7)
 		error = ord(response[6])
 		status_num = ord(response[5])
 		status = ""
 		if (0 <= status_num <= 5):
-			status = status_codes[status_num]
-		
+			status = STATUS_CODES[status_num]
+
 	# Get the voltage, current, power and temperature data
 	request = formulate_request(0x43, address)
 	response = send_recv(socket, request, debug)
@@ -356,104 +362,86 @@ DC Power (W), AC Power (W), Total Energy (Wh), Daily Energy (Wh), Total Hours (h
 
 # This will discover all the inverters, by checking addresses 1 to 255, inclusive
 def discover_inverters(sock, debug):
-	for address in range(1,255):
-		try:
-			model, string, phase, name, serial, version, retval = get_metadata(sock, address, debug)
-			if (retval):
-				print "Address: ", address, "; Model: ",model,  "; String: ",string, "; Phase: ",phase, "; Serial: ",serial, "; Version: ",version
-		except:
-			pass
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   END Functions ~~~~~~~~~~~~~~~~~~~~~~~
-
-# Check script is run as root
-if os.geteuid() != 0:
-	print "You need to have root privileges to run this script, or as \'sudo\'. Exiting."
-	sys.exit(1)
-
-#check the arguments
-arguments = check_args(6)
-if (len(arguments) < 6):
-	print "The arguments cannot be empty. Usage: ", USAGE
-	sys.exit(2)
-
-IP_address = arguments[1]
-start_address = arguments[2]
-end_address = arguments[3]
-log_directory = arguments[4]
-query_type = arguments[5]
-debug_str = arguments[6]
-
-# Convert debug
-retval, debug = convert_to_int(debug_str)
-if (not retval):
-	print "Debug needs to be an integer number. Value entered: ",debug_str
-	sys.exit(3)
-
-# If the logging directory doesn't exist, create it
-if (not os.path.exists(log_directory)):
-	os.makedirs(log_directory)
-
-# Check that no other scripts are running
-pidfile = os.path.join(log_directory, PIDFILE)
-if check_pidfile(pidfile, debug):
-	print "This script is already running"
-	sys.exit(4)
-
-# if any args are empty, exit with error
-if ((not IP_address) or (not start_address) or (not end_address) or (not log_directory)):
-	print "The arguments cannot be empty. Usage: ", USAGE
-	sys.exit(5)
-
-# Convert start and stop addresses
-retval_start, start_addr = convert_to_int(start_address)
-retval_end, end_addr = convert_to_int(end_address)
-if ((not retval_start) or (not retval_end)):
-	print "Start and End Addresses need to be an integers"
-	sys.exit(6)
-
-start_time = time.time()
-# Open the socket
-retval, sock = open_socket(IP_address, debug)
-if (not retval):
-	print "Could not connect to IP Address: ", IP_address
-	sys.exit(7)
-
-if (query_type == "RUNTIME"):
-	# This will check each inverter. If a bad line is received, it will try one more time
-	for (inverter_addr) in range(start_addr, end_addr+1):
-		count = 2
-		while (count >= 1):
-			# Query the data
-			header,line,retval = get_data(sock, inverter_addr, debug)
-			if (retval == True):
-				success = write_line(line, str(inverter_addr), log_directory, header, debug)
-				if (success == True):
-					break
-			count = count - 1
-
-elif (query_type == "DISCOVERY"):
-	discover_inverters(sock, debug)
-
-# Close the socket
-close_socket(sock)
-
-elapsed_time = time.time() - start_time
-if (debug > 0):
-	print "This request took: ",elapsed_time, " seconds."
-
-# Remove the PID file	
-if os.path.isfile(pidfile):
-	os.unlink(pidfile)
-
-print 0
+    for address in range(1,255):
+        try:
+            model, string, phase, name, serial, version, retval = get_metadata(sock, address, debug)
+            if (retval):
+                print "Address: ", address, "; Model: ",model,  "; String: ",string, "; Phase: ",phase, "; Serial: ",serial, "; Version: ",version
+        except:
+            pass
 
 
+class Config(object):
+
+    def __init__(self):
+        self.verbosity = 0
 
 
+pass_config = click.make_pass_decorator(Config, ensure=True);
+
+@click.group()
+@click.option('-v', '--verbose', count=True)
+@pass_config
+def cli(config, verbose):
+    config.verbosity = verbose
 
 
+@cli.command()
+@click.argument('ip_address')
+@pass_config
+def discover(config, ip_address):
+    """Connect to the target IP address and run a scan of all 255 possible addresses"""
+    # Open the socket
+    retval, sock = open_socket(ip_address, config.verbosity)
+    if (not retval):
+        print "Could not connect to IP Address: ", ip_address
+        sys.exit(7)
+    discover_inverters(sock, config.verbosity)
+    close_socket(sock)
 
+@cli.command()
+@click.argument('ip_address')
+@click.argument('bus_addresses')
+@click.argument('output_directory')
+@pass_config
+def log(config, ip_address, bus_addresses, output_directory):
+    """Connect to the target IP address and log the inverter output for the given bus addresses"""
+    # If the logging directory doesn't exist, create it
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
 
+    # Check that no other scripts are running
+    pidfile = os.path.join(output_directory, PIDFILE)
+    if check_pidfile(pidfile, config.verbosity):
+        print "This script is already running"
+        sys.exit(4)
 
+    start_time = time.time()
+    # Open the socket
+    retval, sock = open_socket(ip_address, config.verbosity)
+    if (not retval):
+        print "Could not connect to IP Address: ", ip_address
+        sys.exit(7)
 
+    # This will check each inverter. If a bad line is received, it will try one more time
+    for inverter_addr in parse_address_list(bus_addresses):
+        count = 2
+        while count >= 1:
+            # Query the data
+            header,line,retval = get_data(sock, inverter_addr, config.verbosity)
+            if retval:
+                success = write_line(line, str(inverter_addr), output_directory, header, config.verbosity)
+                if success:
+                    break
+            count = count - 1
+
+    # Close the socket
+    close_socket(sock)
+
+    elapsed_time = time.time() - start_time
+    if (config.verbosity > 0):
+        print "This request took: ",elapsed_time, " seconds."
+
+    # Remove the PID file
+    if os.path.isfile(pidfile):
+        os.unlink(pidfile)
