@@ -2,21 +2,36 @@
 # Purpose
 Kostal (http://www.kostal-solar-electric.com/) supply retail and commercial grade Solar PV inverters. The purpose of this project is to collect data from Kostal Inverters and send the data to your cloud using Ardexa. Data from Kostal solar inverters is read using an Ethernet connection to the first inverter (and then RS485 for other inverters) and a Linux device such as a Raspberry Pi, or an X86 intel powered computer. 
 
-## How does it work
+# How does it work
 This application is written in Python, to query Kostal inverters connected via Ethernet. This application will query 1 or more connected inverters at regular intervals. Data will be written to log files on disk in a directory specified by the user. Usage and command line parameters are as follows:
 
+## Install
+On a raspberry Pi, or other Linux machines (arm, intel, mips or whetever), make sure Python is installed (which it should be). Then install the dependancies and this package as follows:
 ```
-Usage: python kostal-ardexa.py IP_address start_address end_address log_directory query_type debug_str
-Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
+git clone https://github.com/ardexa/kostal-inverters.git
+cd kostal-inverters/scripts
+pip install .
+```
+
+## Usage
+To scan the whole 1-255 RS485 address range and print out the inverter metadata
+```
+Usage: kostal_ardexa discover IP_address
+Eg; kostal-ardexa discover 192.168.1.3
+```
+
+Send production data to a file on disk 
+```
+Usage: kostal_ardexa log IP_address bus_addresses output_directory
+Eg; kostal-ardexa log 192.168.1.3 1-4 /opt/ardexa
 ```
 - IP Address = ..something like: 192.168.1.4
-- Start Address = start range (this is an RS485 address, NOT Ethernet)
-- End Address = end range ((this is an RS485 address, NOT Ethernet) - and Max 255 for Kostal Inverters)
-- log directory = logging directory; eg; /opt/logging/
-- type of query = DISCOVERY or RUNTIME
-	- DISCOVERY ... will scan the whole 1-255 RS485 address range and print out the inverter metadata
-	- RUNTIME ... will send production data to a file on disk 
-- debug type = 0 (no messages, except errors), 1 (discovery messages) or 2 (all messages)
+- Bus Addresses = List of bus addresses using commas and hyphens, e.g. `1-4,6,10-20` (this is an RS485 address, NOT Ethernet). 
+- ouput directory = logging directory; eg; /opt/logging/
+
+
+To view debug output, increase the verbosity using the `-v` flag.
+- standard (no messages, except errors), `-v` (discovery messages) or `-vv` (all messages)
 
 ## Connecting to, and communicating with, Kostal Inverters
 In this project, please take a look at the 'docs' directory. You will find a version of the "Installation and
@@ -31,22 +46,6 @@ So remember these things:
 If in doubt, see the latest documentation on the Kostal website.
 
 ## How to use the script
-On a raspberry Pi, or other Linux machines (arm, intel, mips or whetever), make sure Python is installed (which it should be). Then install the dependancies as follows:
-```
-sudo apt-get update
-sudo apt-get install python-pip
-sudo pip install hexdump
-```
-
-Then install and run this project as follows:
-Note that the applications should be run as root.
-```
-cd
-git https://github.com/ardexa/kostal-inverters.git
-cd kostal-inverters
-Usage: python kostal-ardexa.py IP_address start_address end_address log_directory query_type debug_str
-Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
-```
 
 ## Collecting to the Ardexa cloud
 Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:
@@ -55,5 +54,3 @@ Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent)
 
 ## Help
 Contact Ardexa at support@ardexa.com, and we'll do our best efforts to help.
-
-
