@@ -16,7 +16,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='kostal_ardexa',
-    version='0.1.2',
+    version='0.1.4',
     description='Collect from Kostal Inverters and send the data to your cloud using Ardexa',
     long_description=long_description,
     long_description_content_type='text/markdown',

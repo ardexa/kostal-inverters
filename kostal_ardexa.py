@@ -89,12 +89,12 @@ def get_4bytes(response, index):
 
 def formulate_request(code, address):
     """Formulate the request, which includes the checksum"""
-    request = b'\x62%b\x03%b\x00%b' % (bytes([address]), bytes([address]), bytes([code]))
+    request = bytes([0x62, address, 0x03, address, 0x00, code])
     checksum = 0
     for i in range(len(request)):
         checksum -= request[i]
         checksum %= 256
-    request += b'%b\x00' % (bytes([checksum]))
+    request += bytes([checksum, 0x00])
     return request
 
 def verify_checksum(response):
