@@ -1,4 +1,3 @@
-
 # Purpose
 Kostal (http://www.kostal-solar-electric.com/) supply retail and commercial grade Solar PV inverters. The purpose of this project is to collect data from Kostal Inverters and send the data to your cloud using Ardexa. Data from Kostal solar inverters is read using an Ethernet connection to the first inverter (and then RS485 for other inverters) and a Linux device such as a Raspberry Pi, or an X86 intel powered computer. 
 
@@ -17,13 +16,13 @@ pip install .
 To scan the whole 1-255 RS485 address range and print out the inverter metadata
 ```
 Usage: kostal_ardexa discover IP_address
-Eg; kostal-ardexa discover 192.168.1.3
+Eg; kostal_ardexa discover 192.168.1.3
 ```
 
 Send production data to a file on disk 
 ```
 Usage: kostal_ardexa log IP_address bus_addresses output_directory
-Eg; kostal-ardexa log 192.168.1.3 1-4 /opt/ardexa
+Eg; kostal_ardexa log 192.168.1.3 1-4 /opt/ardexa
 ```
 - IP Address = ..something like: 192.168.1.4
 - Bus Addresses = List of bus addresses using commas and hyphens, e.g. `1-4,6,10-20` (this is an RS485 address, NOT Ethernet). 
