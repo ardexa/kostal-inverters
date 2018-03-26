@@ -72,7 +72,7 @@ def get_2bytes(response, index):
     # Check that retrieving 2 bytes won't overrun the response
     length = len(response)
     if length >= index + 2:
-        retval = ord(response[index]) + 256*ord(response[index+1])
+        retval = response[index] + (response[index+1] << 8)
         return retval
     else:
         return -999.9
@@ -82,19 +82,19 @@ def get_4bytes(response, index):
     # Check that retrieving 4 bytes won't overrun the response
     length = len(response)
     if length >= index + 4:
-        retval = ord(response[index]) + 256*ord(response[index+1]) + 65536*ord(response[index+2]) + 16777216*ord(response[index+3])
+        retval = response[index] + (response[index+1] << 8) + (response[index+2] << 16) + (response[index+3] << 24)
         return retval
     else:
         return -999.9
 
 def formulate_request(code, address):
     """Formulate the request, which includes the checksum"""
-    request = '\x62%s\x03%s\x00%s' % (chr(address), chr(address), chr(code))
+    request = b'\x62%b\x03%b\x00%b' % (bytes([address]), bytes([address]), bytes([code]))
     checksum = 0
     for i in range(len(request)):
-        checksum -= ord(request[i])
+        checksum -= request[i]
         checksum %= 256
-    request += '%s\x00' % (chr(checksum))
+    request += b'%b\x00' % (bytes([checksum]))
     return request
 
 def verify_checksum(response):
@@ -103,10 +103,10 @@ def verify_checksum(response):
         return False
     checksum = 0
     for i in range(len(response) - 2):
-        checksum -= ord(response[i])
+        checksum -= response[i]
         checksum %= 256
 
-    if checksum != ord(response[-2]):
+    if checksum != response[-2]:
         return False
 
     return True
@@ -147,8 +147,8 @@ def get_metadata(sock, address, debug):
         retval = False
     else:
         model = response[5:16]
-        string = ord(response[21])
-        phase = ord(response[28])
+        string = response[21]
+        phase = response[28]
 
     # Get Name
     request = formulate_request(0x44, address)
@@ -202,6 +202,7 @@ def convert(temp):
 
 def get_data(sock, address, debug):
     """Get the inverter data"""
+    retval = True
     # Get status
     request = formulate_request(0x57, address)
     response = send_recv(sock, request, debug)
@@ -210,8 +211,8 @@ def get_data(sock, address, debug):
         return '', '', False
     else:
         error_code = get_2bytes(response, 7)
-        error = ord(response[6])
-        status_num = ord(response[5])
+        error = response[6]
+        status_num = response[5]
         status = ""
         if 0 <= status_num <= 5:
             status = STATUS_CODES[status_num]
