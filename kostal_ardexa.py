@@ -26,6 +26,7 @@ Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
 # IN THE SOFTWARE.
 #
 
+from __future__ import print_function
 import sys
 import time
 import os

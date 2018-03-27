@@ -16,15 +16,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='kostal_ardexa',
-    version='0.1.4',
+    version='0.2.0',
     description='Collect from Kostal Inverters and send the data to your cloud using Ardexa',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/ardexa/kostal-inverters',
     author='Ardexa Pty Limited',
     author_email='support@ardexa.com',
+    python_requires='>=2.7',
     classifiers=[
         'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
