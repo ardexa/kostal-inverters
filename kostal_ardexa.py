@@ -27,6 +27,7 @@ Eg; python kostal-ardexa.py 192.168.1.3 1 4 /opt/ardexa RUNTIME 0
 #
 
 from __future__ import print_function
+from builtins import bytes
 import sys
 import time
 import os
@@ -34,6 +35,8 @@ import socket
 import click
 import hexdump
 import ardexaplugin as ap
+
+PY3K = sys.version_info >= (3, 0)
 
 # These are the status codes from the Kostal Manual
 STATUS_CODES = {0: 'Off', 1: 'Standby', 2: 'Starting', 3: 'Feed-in (MPP)', 4: 'Feed-in regulated', 5: 'Feed-in'}
@@ -115,7 +118,11 @@ def verify_checksum(response):
 def send_recv(sock, request, debug):
     """Send a request and return the response"""
     if debug >= 2:
-        print('Sent: ', hexdump.hexdump(request))
+        if PY3K:
+            print('Sent: ', hexdump.hexdump(request))
+        else:
+            # hexdump in py2 requires a string, so convert the bytes
+            print('Sent: ', hexdump.hexdump("".join(map(chr, request))))
 
     response = ''
     try:
@@ -127,6 +134,9 @@ def send_recv(sock, request, debug):
     if debug >= 2:
         print('Received: ', hexdump.hexdump(response))
 
+    # convert any string replies to bytes (py2)
+    if type(response) == str:
+        return bytes(response)
     return response
 
 def get_metadata(sock, address, debug):

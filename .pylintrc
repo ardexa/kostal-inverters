@@ -6,4 +6,4 @@ max-line-length=170
 
 [MESSAGES CONTROL]
 
-disable=no-else-return,bare-except,consider-using-enumerate,too-few-public-methods
+disable=no-else-return,bare-except,consider-using-enumerate,too-few-public-methods,redefined-builtin
